@@ -2,8 +2,8 @@
 
 Students:
 
-Hyrum Morales
-Samuel Riveros
-Lifegate Justice
-Boitumelo Meletse
-Uchechukwu Promise
+- Hyrum Morales
+- Samuel Riveros
+- Lifegate Justice
+- Boitumelo Meletse
+- Uchechukwu Promise
