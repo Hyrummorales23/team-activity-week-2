@@ -6,5 +6,5 @@ Students:
 - Samuel Riveros
 - Lifegate Justice
 - Boitumelo Meletse
-- Uchechukwu Promise
+- Ezenwoke Uchechukwu Promise
 - Happiness Ncube
