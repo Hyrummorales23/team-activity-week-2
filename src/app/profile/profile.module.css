@@ -1,0 +1,174 @@
+.profilePage {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: var(--spacing-2xl) var(--spacing-xl);
+}
+
+.profileHeader {
+  background: var(--surface);
+  padding: var(--spacing-2xl);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-2xl);
+  display: flex;
+  gap: var(--spacing-2xl);
+  align-items: center;
+  border: 1px solid var(--border-color);
+}
+
+.avatarSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.avatar {
+  width: 120px;
+  height: 120px;
+  background: var(--light-gray-bg);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid var(--border-color);
+}
+
+.placeholder {
+  font-size: 4rem;
+  opacity: 0.3;
+}
+
+.btnSecondary {
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: transparent;
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+  border-radius: var(--radius-round);
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.btnSecondary:hover {
+  background: var(--primary-color);
+  color: var(--white);
+}
+
+.profileInfo {
+  flex: 1;
+}
+
+.profileName {
+  font-size: 2rem;
+  margin-bottom: var(--spacing-sm);
+  color: var(--text-primary);
+}
+
+.profileType {
+  color: var(--primary-color);
+  font-weight: 500;
+  margin-bottom: var(--spacing-xs);
+}
+
+.memberSince {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.profileContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xl);
+}
+
+.section {
+  background: var(--surface);
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+}
+
+.sectionTitle {
+  font-size: 1.5rem;
+  margin-bottom: var(--spacing-lg);
+  color: var(--text-primary);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-lg);
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.label {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.input {
+  padding: var(--spacing-md);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-family: var(--font-body);
+  transition: border-color 0.2s ease;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.btnPrimary {
+  padding: var(--spacing-md) var(--spacing-xl);
+  background: var(--primary-color);
+  color: var(--white);
+  border: none;
+  border-radius: var(--radius-round);
+  font-weight: 500;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  width: fit-content;
+}
+
+.btnPrimary:hover {
+  background: var(--primary-hover);
+  box-shadow: var(--shadow-md);
+}
+
+.placeholder {
+  background: var(--light-gray-bg);
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-2xl);
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+  .profileHeader {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+
+  .profileName {
+    font-size: 1.5rem;
+  }
+}
