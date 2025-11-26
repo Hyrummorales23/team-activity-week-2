@@ -1,6 +1,7 @@
-import MainLayout from "@/components/Layout/MainLayout";
-import Sidebar from "@/components/Sidebar/Sidebar";
-import styles from "./catalog.module.css";
+import MainLayout from '@/components/Layout/MainLayout';
+import Sidebar from '@/components/Sidebar/Sidebar';
+import Link from 'next/link';
+import styles from './catalog.module.css';
 import { searchItems, getAllItems } from "@/lib/queries/items";
 
 export default async function CatalogPage(props: {
@@ -100,6 +101,9 @@ export default async function CatalogPage(props: {
                       ⭐ {Number(item.average_rating || 0).toFixed(1)}
                     </span>
                   </div>
+                  <Link href="/products/edit" className={styles.editButton}>
+                    ✏️ Edit
+                  </Link>
                 </div>
               </div>
             ))}
