@@ -1,0 +1,65 @@
+2-MINUTE PRESENTATION: EDIT FUNCTIONALITY FOR HANDCRAFTED HEAVEN
+Team Member: Happiness
+Date: November 26, 2025
+Live Site: https://handcrafted-heaven.vercel.app/
+
+
+WHAT I COMPLETED THIS SPRINT (60 seconds)
+
+1. EDIT PRODUCT PAGE - BRAND NEW PAGE
+   - Created a complete new page at /products/edit
+   - Built a full form with fields for: product name, category, description, price, stock quantity, and availability status
+   - Added image upload section for product photos
+   - Implemented delete product button with confirmation
+   - Added form validation for required fields
+   - Styled with responsive CSS that matches our design system
+   - Connected navigation - has "Back to Profile" link
+
+2. EDIT PROFILE PAGE - ENHANCED EXISTING PAGE
+   - Updated the existing profile page to make all fields editable
+   - Added "Edit Profile" button that toggles edit mode on/off
+   - Made these fields editable: full name, email, location, phone, and bio
+   - Added Save and Cancel buttons that appear only in edit mode
+   - Fields are disabled when not editing for clean display
+   - Users can edit their name directly in the header section
+
+3. CONNECTED THE NAVIGATION
+   - Added "Edit" buttons to every product card in the catalog
+   - All edit buttons link to the edit product form
+   - Navigation flows smoothly between pages
+
+
+WHAT'S STILL IN PROGRESS (30 seconds)
+
+The forms are complete on the frontend, but they need backend connection:
+
+- Set up MongoDB Atlas database to store the data
+- Create Next.js API routes in src/app/api folder for profile and products
+- Add environment variables in Vercel for database connection
+- Connect the forms to the API so data actually saves
+
+Right now the forms show success alerts, but don't persist data yet. That's the next phase of this ongoing project.
+
+
+
+I successfully delivered two working edit pages with full forms, validation, and styling. They're deployed and ready - just waiting for backend integration to make the data persist.
+
+Thank you!
+
+
+TECHNICAL STACK USED:
+- Next.js 16 with App Router
+- TypeScript for type safety
+- React hooks (useState) for state management
+- CSS Modules for styling
+- Client-side form validation
+- Deployed on Vercel
+
+FILES CREATED:
+- src/app/products/edit/page.tsx
+- src/app/products/edit/edit-product.module.css
+- Updated src/app/profile/page.tsx
+- Updated src/app/profile/profile.module.css
+- Updated src/app/catalog/page.tsx (added edit buttons)
+- Updated src/app/catalog/catalog.module.css
+

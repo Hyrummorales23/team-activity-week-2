@@ -1,5 +1,6 @@
 import MainLayout from '@/components/Layout/MainLayout';
 import Sidebar from '@/components/Sidebar/Sidebar';
+import Link from 'next/link';
 import styles from './catalog.module.css';
 
 export default function CatalogPage() {
@@ -57,6 +58,9 @@ export default function CatalogPage() {
                     <span className={styles.productPrice}>$XX.XX</span>
                     <span className={styles.productRating}>⭐ 4.5</span>
                   </div>
+                  <Link href="/products/edit" className={styles.editButton}>
+                    ✏️ Edit
+                  </Link>
                 </div>
               </div>
             ))}
