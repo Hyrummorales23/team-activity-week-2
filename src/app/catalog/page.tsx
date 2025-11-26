@@ -1,18 +1,17 @@
-import MainLayout from '@/components/Layout/MainLayout';
-import Sidebar from '@/components/Sidebar/Sidebar';
-import styles from './catalog.module.css';
-import { searchItems } from "@/lib/queries/items";
+import MainLayout from "@/components/Layout/MainLayout";
+import Sidebar from "@/components/Sidebar/Sidebar";
+import styles from "./catalog.module.css";
+import { searchItems, getAllItems } from "@/lib/queries/items";
 
-export default async function CatalogPage({ 
-  searchParams,
- }: { 
-  searchParams: { search?: string };
- }) {
-  const searchQuery = searchParams.search || "";
-  
-  //Fetch items based on search
-  const products = searchQuery
-  ? await searchItems(searchQuery): []; // later can replace [] with getAllItems()
+export default async function CatalogPage(props: {
+  searchParams: Promise<{ search?: string }>;
+}) {
+  const { search = "" } = await props.searchParams;
+
+  // Fetch items based on search
+  const products = search
+    ? await searchItems(search)
+    : await getAllItems();
 
   return (
     <MainLayout showSidebar sidebar={<Sidebar />}>
@@ -24,7 +23,7 @@ export default async function CatalogPage({
             type="text"
             name="search"
             placeholder="Search for handcrafted items..."
-            defaultValue={searchQuery}
+            defaultValue={search}
             className={styles.searchInput}
           />
           <button type="submit" className={styles.searchButton}>
@@ -35,6 +34,7 @@ export default async function CatalogPage({
         {/* Filters */}
         <div className={styles.filters}>
           <h3 className={styles.filtersTitle}>Filters</h3>
+
           <div className={styles.filterGroup}>
             <label className={styles.filterLabel}>Price Range</label>
             <select className={styles.filterSelect}>
@@ -45,6 +45,7 @@ export default async function CatalogPage({
               <option>Over $100</option>
             </select>
           </div>
+
           <div className={styles.filterGroup}>
             <label className={styles.filterLabel}>Sort By</label>
             <select className={styles.filterSelect}>
@@ -57,21 +58,47 @@ export default async function CatalogPage({
           </div>
         </div>
 
-        {/* Product Grid Placeholder */}
+        {/* Products */}
         <div className={styles.productsSection}>
           <h2 className={styles.sectionTitle}>All Products</h2>
+
           <div className={styles.productGrid}>
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
-              <div key={item} className={styles.productCard}>
+            {products.length === 0 && (
+              <p>No items found. Try another search.</p>
+            )}
+
+            {products.map((item: any) => (
+              <div key={item.itemid} className={styles.productCard}>
                 <div className={styles.productImage}>
-                  <span className={styles.placeholder}>📦</span>
+                  {item.product_picture ? (
+                    <img
+                      src={item.product_picture}
+                      alt={item.product_name}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
+                    />
+                  ) : (
+                    <span className={styles.placeholder}>📦</span>
+                  )}
                 </div>
+
                 <div className={styles.productInfo}>
-                  <h3 className={styles.productName}>Product Name</h3>
-                  <p className={styles.productArtisan}>By Artisan Name</p>
+                  <h3 className={styles.productName}>{item.product_name}</h3>
+                  <p className={styles.productArtisan}>
+                    By {item.artisan_name || "Unknown"}
+                  </p>
+
                   <div className={styles.productFooter}>
-                    <span className={styles.productPrice}>$XX.XX</span>
-                    <span className={styles.productRating}>⭐ 4.5</span>
+                    <span className={styles.productPrice}>
+                      ${(item.product_price / 100).toFixed(2)}
+                    </span>
+
+                    <span className={styles.productRating}>
+                      ⭐ {Number(item.average_rating || 0).toFixed(1)}
+                    </span>
                   </div>
                 </div>
               </div>
