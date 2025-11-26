@@ -1,20 +1,36 @@
 import MainLayout from '@/components/Layout/MainLayout';
 import Sidebar from '@/components/Sidebar/Sidebar';
 import styles from './catalog.module.css';
+import { searchItems } from "@/lib/queries/items";
 
-export default function CatalogPage() {
+export default async function CatalogPage({ 
+  searchParams,
+ }: { 
+  searchParams: { search?: string };
+ }) {
+  const searchQuery = searchParams.search || "";
+  
+  //Fetch items based on search
+  const products = searchQuery
+  ? await searchItems(searchQuery): []; // later can replace [] with getAllItems()
+
   return (
     <MainLayout showSidebar sidebar={<Sidebar />}>
       <div className={styles.catalogPage}>
+        
         {/* Search Bar */}
-        <div className={styles.searchSection}>
+        <form action="/catalog" method="GET" className={styles.searchSection}>
           <input
             type="text"
+            name="search"
             placeholder="Search for handcrafted items..."
+            defaultValue={searchQuery}
             className={styles.searchInput}
           />
-          <button className={styles.searchButton}>Search</button>
-        </div>
+          <button type="submit" className={styles.searchButton}>
+            Search
+          </button>
+        </form>
 
         {/* Filters */}
         <div className={styles.filters}>
