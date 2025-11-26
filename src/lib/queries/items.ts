@@ -92,3 +92,23 @@ export async function deleteItem(input: z.infer<typeof deleteItemSchema>) {
 
   return result[0];
 }
+
+export async function searchItems(query: string) {
+  const search = `%${query.toLowerCase()}%`;
+
+  const result = await sql`
+    SELECT 
+      i.*,
+      COALESCE(AVG(r.ratingValue), 0) AS average_rating,
+      COUNT(r.ratingId) AS rating_count
+    FROM items i
+    LEFT JOIN ratings r ON i.itemId = r.productId
+    WHERE LOWER(i.product_name) LIKE ${search}
+       OR LOWER(i.product_description) LIKE ${search}
+       OR LOWER(i.category) LIKE ${search}
+    GROUP BY i.itemId
+    ORDER BY i.createdAt DESC;
+  `;
+
+  return result;
+}
