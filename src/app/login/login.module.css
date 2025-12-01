@@ -1,63 +1,86 @@
-.loginPage {
-  min-height: calc(100vh - 73px);
+:root {
+  --primary-color: #C26D3D;
+  --hover-color: #5A7052;
+  --white: #ffffff;
+  --text-primary: #1C1E21;
+  --text-secondary:  #65676B ;
+  --border-light: rgba(255, 255, 255, 0.4);
+  --input-bg: rgba(255, 255, 255, 0.25);
+  --glass-bg: rgba(255, 255, 255, 0.15);
+  --radius: 12px;
+}
+
+/* Background */
+.pageBackground {
+  min-height: 100vh;
+  background: url('https://images.unsplash.com/photo-1481437156560-3205f6a55735?fm=jpg&q=60&w=3000')
+    center/cover no-repeat;
   display: flex;
-  align-items: center;
   justify-content: center;
-  padding: var(--spacing-xl);
-  background: var(--background);
+  align-items: center;
+  padding: 40px;
 }
 
-.loginCard {
-  background: var(--surface);
-  padding: var(--spacing-2xl);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+/* Glass Card */
+.glassCard {
   width: 100%;
-  max-width: 450px;
+  max-width: 460px;
+  padding: 40px;
+  border-radius: 20px;
+  backdrop-filter: blur(18px);
+  background: rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.15);
 }
 
-.loginHeader {
-  text-align: center;
-  margin-bottom: var(--spacing-xl);
-}
-
+/* Title */
 .title {
   font-size: 2rem;
+  color: #65676B;
+  text-align: center;
   font-weight: 700;
-  margin-bottom: var(--spacing-sm);
-  color: var(--text-primary);
 }
 
 .subtitle {
-  font-size: 1rem;
-  color: var(--text-secondary);
+  text-align: center;
+  color: var(--white);
+  opacity: 0.85;
+  margin-bottom: 25px;
 }
 
+/* Form */
 .loginForm {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: 18px;
 }
 
 .formGroup {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
 }
 
 .label {
+  color: #1C1E21;
+  margin-bottom: 6px;
   font-size: 0.95rem;
-  font-weight: 500;
-  color: var(--text-primary);
 }
 
+/* Input Box */
 .input {
-  padding: var(--spacing-md);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border-light);
+  background: var(--input-bg);
+  color: #1C1E21;
   font-size: 1rem;
-  font-family: var(--font-body);
-  transition: border-color 0.2s ease;
+  backdrop-filter: blur(5px);
+}
+
+.input::placeholder {
+  color: #1C1E21;
+  font-size: 0.9rem;
 }
 
 .input:focus {
@@ -65,98 +88,127 @@
   border-color: var(--primary-color);
 }
 
-.formOptions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.9rem;
+/* Password Wrapper */
+.passwordWrapper {
+  position: relative;
+  width: 100%;
 }
 
-.checkbox {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
+.togglePassword {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
   cursor: pointer;
-  color: var(--text-secondary);
+  font-size: 1.2rem;
+  color: var(--white);
+  opacity: 0.7;
 }
 
-.checkbox input {
-  cursor: pointer;
+.togglePassword:hover {
+  opacity: 1;
 }
 
-.forgotLink {
-  color: var(--primary-color);
-  font-weight: 500;
-}
-
-.forgotLink:hover {
-  color: var(--primary-hover);
-  text-decoration: underline;
-}
-
+/* Primary Button */
 .btnPrimary {
-  padding: var(--spacing-md);
+  width: 100%;
+  padding: 14px;
+  border-radius: 30px;
+  border: none;
   background: var(--primary-color);
   color: var(--white);
-  border: none;
-  border-radius: var(--radius-round);
-  font-weight: 500;
   font-size: 1rem;
-  transition: all 0.2s ease;
   cursor: pointer;
+  transition: 0.2s;
 }
 
 .btnPrimary:hover {
-  background: var(--primary-hover);
-  box-shadow: var(--shadow-md);
+  background: var(--hover-color);
 }
 
-.divider {
+/* Social Buttons */
+.socialButtons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.googleBtn {
+  background: linear-gradient(90deg, #4285F4, #EA4335, #FBBC05, #34A853); /* Google colors gradient */
+  color: white;
+  padding: 10px 20px;
+  border-radius: 30px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  text-align: center;
   display: flex;
   align-items: center;
-  text-align: center;
-  margin: var(--spacing-xl) 0;
-  color: var(--text-secondary);
+  gap: 10px;
 }
 
-.divider::before,
-.divider::after {
+.googleBtn::before {
   content: '';
-  flex: 1;
-  border-bottom: 1px solid var(--border-color);
+  background: url('https://img.icons8.com/?size=48&id=17949&format=png') no-repeat center;
+  background-size: contain;
+  width: 20px;
+  height: 20px;
+  display: inline-block;
 }
 
-.divider span {
-  padding: 0 var(--spacing-md);
-  font-size: 0.875rem;
+.facebookBtn {
+  background: #1877F2; /* Facebook's signature blue */
+  color: white; /* White text for contrast */
+  padding: 10px 20px;
+  border-radius: 30px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
+.facebookBtn::before {
+  content: '';
+  background: url('https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png') no-repeat center;
+  background-size: contain;
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+}
+
+/* Divider */
+.divider {
+  text-align: center;
+  margin: 20px 0;
+  color: var(--white);
+  opacity: 0.8;
+}
+
+/* Register + Login prompt */
 .registerPrompt {
   text-align: center;
-  color: var(--text-secondary);
-}
-
-.registerPrompt p {
-  margin-bottom: var(--spacing-sm);
+  color: var(--white);
 }
 
 .registerLink {
-  color: var(--primary-color);
-  font-weight: 500;
-  font-size: 1rem;
+  color: #f4d9c6;
+  font-weight: bold;
 }
 
-.registerLink:hover {
-  color: var(--primary-hover);
-  text-decoration: underline;
+.error {
+  color: #ffe0e0;
+  text-align: center;
+  font-size: 0.9rem;
 }
 
-@media (max-width: 480px) {
-  .loginCard {
-    padding: var(--spacing-xl);
-  }
-
-  .title {
-    font-size: 1.5rem;
-  }
+.success {
+  color: #d4ffd4;
+  text-align: center;
+  font-size: 0.9rem;
 }
