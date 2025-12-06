@@ -13,6 +13,7 @@ export async function createItem(input: z.infer<typeof createItemSchema>) {
   const data = createItemSchema.parse(input);
 
   const priceInCents = Math.round(data.productPrice * 100);
+  const productPicture = data.productPicture === "" || data.productPicture === undefined ? null : data.productPicture;
 
   const result = await sql`
     INSERT INTO items (
@@ -22,13 +23,13 @@ export async function createItem(input: z.infer<typeof createItemSchema>) {
       product_picture,
       category,
       user_id,
-      created_at
+      createdAt
     )
     VALUES (
       ${data.productName},
       ${data.productDescription},
       ${priceInCents},
-      ${data.productPicture},
+      ${productPicture},
       ${data.category},
       ${data.userId},
       NOW()

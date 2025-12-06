@@ -4,12 +4,12 @@ export const createItemSchema = z.object({
   productName: z.string().min(1),
   productDescription: z.string().min(1),
   productPrice: z.number().positive(),
-  productPicture: z.url(),
+  productPicture: z.string().url().optional().or(z.literal("")),
   category: z.enum([
-    "jewelry", "art", "clothing", "home_decor", "toys", 
+    "jewelry", "art", "clothing", "home_decor", "toys",
     "books", "electronics", "other"
   ]),
-  userId: z.uuid(),
+  userId: z.string().uuid(),
 });
 
 export const updateItemSchema = z.object({
