@@ -270,6 +270,12 @@ Click logo → Back to home
 Show one category click
 Total Time: 2 minutes ⏱️
 
-Good luck with your presentation! 🎉
 
-Claude Sonnet 4.5 • 1x
+HAPPINESS
+Hey everyone!
+This week, I worked on our Artisan Marketplace project. I helped set up the user authentication, made sure artisans and customers can register and log in, and fixed some bugs with the profile and product pages. I also added a drag-and-drop image upload for products and tried to made sure sellers can add new items easily although lifegate made sure that the product/item page is working since  i encountered a skeema problem, yes I checked the database schemas and made sure our backend matches what we planned but i think lifegate got everything right. Overall, I focused on making the app smoother and more user-friendly for both artisans and customers. I also fixed the home page since it had a problem.
+
+please dont merge waht is not needed such as the changes I made on the prodict page dont merge because lifegate has done all and it working. If aunthitication is woking also dont merge it unless we are still having problems with it.
+
+I am creating a pull request please find and merge whatr is necessary
+Still continuing to test

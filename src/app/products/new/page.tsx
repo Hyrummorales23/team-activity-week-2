@@ -1,133 +1,90 @@
-'use client';
+"use client";
 
+import { useState } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import styles from "../edit/edit-product.module.css";
 
-import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-import styles from './edit-product.module.css';
-
-
-export default function EditProductPage() {
+export default function NewProductPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [productName, setProductName] = useState('Sample Product Name');
-  const [category, setCategory] = useState('ceramics');
-  const [description, setDescription] = useState('This is a beautiful handcrafted item made with care...');
-  const [price, setPrice] = useState('45.99');
-  const [stock, setStock] = useState('10');
-  const [statusValue, setStatusValue] = useState('active');
+  const [productName, setProductName] = useState("");
+  const [category, setCategory] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("");
+  const [stock, setStock] = useState("");
+  const [statusValue, setStatusValue] = useState("active");
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [ownerId, setOwnerId] = useState<string | null>(null);
-  const searchParams = useSearchParams();
-  const itemId = searchParams.get('id');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
 
-  useEffect(() => {
-    if (!itemId) return;
-    setLoading(true);
-    setMessage(null);
-    fetch(`/api/items?id=${itemId}`)
-      .then(res => res.json())
-      .then(data => {
-        // If API returns a single item, not an array
-        const product = Array.isArray(data) ? data[0] : data;
-        if (product && product.itemId) {
-          setProductName(product.productName || '');
-          setCategory(product.category || '');
-          setDescription(product.productDescription || '');
-          setPrice(product.productPrice ? String(product.productPrice) : '');
-          setStock(product.stock ? String(product.stock) : '');
-          setStatusValue(product.status || 'active');
-          setOwnerId(product.userId || product.user_id || null);
-        } else {
-          setMessage('Product not found.');
-        }
-      })
-      .catch(() => setMessage('Error loading product.'))
-      .finally(() => setLoading(false));
-  }, [itemId]);
-
-  // If not authenticated, show login prompt
-  if (status === 'loading') return <div>Loading...</div>;
-  if (status === 'unauthenticated') {
+  if (status === "loading") return <div>Loading...</div>;
+  if (status === "unauthenticated") {
     return (
-      <div style={{ textAlign: 'center', marginTop: '3rem' }}>
-        <h2>You must be logged in to edit products.</h2>
-        <a href="/login" style={{ color: '#C26D3D', fontWeight: 600 }}>Go to Login</a>
+      <div style={{ textAlign: "center", marginTop: "3rem" }}>
+        <h2>You must be logged in to add a product.</h2>
+        <a href="/login" style={{ color: "#C26D3D", fontWeight: 600 }}>Go to Login</a>
       </div>
     );
   }
 
-  // If authenticated but not owner, show error
-  const userId = session && session.user ? (session.user as any).id : undefined;
-  if (ownerId && userId && ownerId !== userId) {
-    return (
-      <div style={{ textAlign: 'center', marginTop: '3rem' }}>
-        <h2>You do not have permission to edit this product.</h2>
-        <a href="/catalog" style={{ color: '#C26D3D', fontWeight: 600 }}>Back to Catalog</a>
-      </div>
-    );
-  }
+  const handleImageDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith("image/")) {
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith("image/")) {
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setMessage(null);
-    if (!itemId) {
-      setMessage('No product ID provided.');
+    const userId = session && session.user ? (session.user as any).id : undefined;
+    if (!userId) {
+      setMessage("No user ID found. Please log in.");
       setLoading(false);
       return;
     }
     try {
-      const res = await fetch('/api/items', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+      let productPicture = "";
+      if (imageFile) {
+        // Simulate upload, in real app upload to server or cloud storage
+        productPicture = imagePreview;
+      }
+      const res = await fetch("/api/items", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          itemId,
           productName,
           productDescription: description,
           productPrice: parseFloat(price),
-          productPicture: '', // Add image upload logic if needed
+          productPicture,
           category,
+          userId,
           status: statusValue,
-          stock: parseInt(stock, 10)
-        })
+          stock: parseInt(stock, 10) || 0,
+        }),
       });
       if (res.ok) {
-        setMessage('Product updated successfully!');
+        setMessage("Product created successfully!");
+        setTimeout(() => router.push("/profile"), 1200);
       } else {
-        setMessage('Failed to update product.');
+        setMessage("Failed to create product.");
       }
     } catch (err) {
-      setMessage('Error updating product.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!itemId) {
-      setMessage('No product ID provided.');
-      return;
-    }
-    if (!confirm('Are you sure you want to delete this product? This action cannot be undone.')) return;
-    setLoading(true);
-    setMessage(null);
-    try {
-      const res = await fetch('/api/items', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ itemId })
-      });
-      if (res.ok) {
-        setMessage('Product deleted successfully!');
-        setTimeout(() => router.push('/profile'), 1200);
-      } else {
-        setMessage('Failed to delete product.');
-      }
-    } catch (err) {
-      setMessage('Error deleting product.');
+      setMessage("Error creating product.");
     } finally {
       setLoading(false);
     }
@@ -136,7 +93,7 @@ export default function EditProductPage() {
   return (
     <div className={styles.editPage}>
       <div className={styles.header}>
-        <h1 className={styles.title}>Edit Product</h1>
+        <h1 className={styles.title}>Add New Product</h1>
         <Link href="/profile" className={styles.backLink}>
           ← Back to Profile
         </Link>
@@ -145,19 +102,29 @@ export default function EditProductPage() {
       <div className={styles.formCard}>
         <form className={styles.form} onSubmit={handleSubmit}>
           <div className={styles.imageSection}>
-            <div className={styles.imagePreview}>
-              <span className={styles.placeholder}>📦</span>
-              <p className={styles.imageText}>Current Product Image</p>
+            <div
+              className={styles.imagePreview}
+              onDragOver={e => e.preventDefault()}
+              onDrop={handleImageDrop}
+              style={{ border: "2px dashed #ccc", cursor: "pointer" }}
+            >
+              {imagePreview ? (
+                <img src={imagePreview} alt="Preview" style={{ width: "100%", maxHeight: 120, objectFit: "contain" }} />
+              ) : (
+                <span className={styles.placeholder}>📦</span>
+              )}
+              <p className={styles.imageText}>Drag & drop or select an image</p>
             </div>
             <div className={styles.imageControls}>
               <label htmlFor="productImage" className={styles.btnSecondary}>
-                Change Image
+                Upload Image
               </label>
-              <input 
-                type="file" 
-                id="productImage" 
+              <input
+                type="file"
+                id="productImage"
                 accept="image/*"
                 className={styles.fileInput}
+                onChange={handleImageChange}
               />
               <p className={styles.hint}>JPG, PNG, or GIF (Max 5MB)</p>
             </div>
@@ -182,8 +149,8 @@ export default function EditProductPage() {
             <label htmlFor="category" className={styles.label}>
               Category <span className={styles.required}>*</span>
             </label>
-            <select 
-              id="category" 
+            <select
+              id="category"
               className={styles.input}
               value={category}
               onChange={(e) => setCategory(e.target.value)}
@@ -257,21 +224,21 @@ export default function EditProductPage() {
             <label className={styles.label}>Product Status</label>
             <div className={styles.radioGroup}>
               <label className={styles.radioLabel}>
-                <input 
-                  type="radio" 
-                  name="status" 
+                <input
+                  type="radio"
+                  name="status"
                   value="active"
-                  checked={statusValue === 'active'}
+                  checked={statusValue === "active"}
                   onChange={(e) => setStatusValue(e.target.value)}
                 />
                 <span>Active (Visible to customers)</span>
               </label>
               <label className={styles.radioLabel}>
-                <input 
-                  type="radio" 
-                  name="status" 
+                <input
+                  type="radio"
+                  name="status"
                   value="draft"
-                  checked={statusValue === 'draft'}
+                  checked={statusValue === "draft"}
                   onChange={(e) => setStatusValue(e.target.value)}
                 />
                 <span>Draft (Hidden from customers)</span>
@@ -280,20 +247,15 @@ export default function EditProductPage() {
           </div>
 
           <div className={styles.formActions}>
-            <button type="button" className={styles.btnDelete} onClick={handleDelete}>
-              Delete Product
+            <Link href="/profile" className={styles.btnCancel}>
+              Cancel
+            </Link>
+            <button type="submit" className={styles.btnPrimary} disabled={loading}>
+              {loading ? "Saving..." : "Add Product"}
             </button>
-            <div className={styles.rightActions}>
-              <Link href="/profile" className={styles.btnCancel}>
-                Cancel
-              </Link>
-              <button type="submit" className={styles.btnPrimary} disabled={loading}>
-                {loading ? 'Saving...' : 'Save Changes'}
-              </button>
-            </div>
           </div>
         </form>
-        {message && <div style={{ margin: '1rem 0', color: message.includes('success') ? 'green' : 'red' }}>{message}</div>}
+        {message && <div style={{ margin: "1rem 0", color: message.includes("success") ? "green" : "red" }}>{message}</div>}
       </div>
     </div>
   );
