@@ -57,36 +57,51 @@ export async function createItem(input: z.infer<typeof createItemSchema>) {
 export async function updateItem(input: z.infer<typeof updateItemSchema>) {
   const data = updateItemSchema.parse(input);
 
-  const setClauses: any[] = [];
+  const setClauses: string[] = [];
+  const values: any[] = [];
 
   if (data.productName !== undefined) {
-    setClauses.push(sql`product_name = ${data.productName}`);
+    setClauses.push(`product_name = $${setClauses.length + 1}`);
+    values.push(data.productName);
   }
+
   if (data.productDescription !== undefined) {
-    setClauses.push(sql`product_description = ${data.productDescription}`);
+    setClauses.push(`product_description = $${setClauses.length + 1}`);
+    values.push(data.productDescription);
   }
+
   if (data.productPrice !== undefined) {
     const cents = Math.round(data.productPrice * 100);
-    setClauses.push(sql`product_price = ${cents}`);
+    setClauses.push(`product_price = $${setClauses.length + 1}`);
+    values.push(cents);
   }
+
   if (data.productPicture !== undefined) {
-    setClauses.push(sql`product_picture = ${data.productPicture}`);
+    setClauses.push(`product_picture = $${setClauses.length + 1}`);
+    values.push(data.productPicture);
   }
+
   if (data.category !== undefined) {
-    setClauses.push(sql`category = ${data.category}`);
+    setClauses.push(`category = $${setClauses.length + 1}`);
+    values.push(data.category);
   }
 
   if (setClauses.length === 0) return null;
 
-  const result = await sql<Product[]>`
+  // Add WHERE itemId param
+  values.push(data.itemId);
+
+  const query = `
     UPDATE items
-    SET ${sql.join(setClauses, sql`, `)}
-    WHERE itemId = ${data.itemId}
+    SET ${setClauses.join(", ")}
+    WHERE itemId = $${values.length}
     RETURNING *;
   `;
 
+  const result = await sql.unsafe<Product[]>(query, values);
   return result[0];
 }
+
 
 export async function deleteItem(input: z.infer<typeof deleteItemSchema>) {
   const { itemId } = deleteItemSchema.parse(input);
