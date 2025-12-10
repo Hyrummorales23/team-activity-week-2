@@ -32,9 +32,12 @@
 
 .heroActions {
   display: flex;
-  gap: var(--spacing-md);
+  gap: var(--spacing-2xl);
   justify-content: center;
+  align-items: center;
+  margin-top: 3rem;
   flex-wrap: wrap;
+  
 }
 
 .btnPrimary,
@@ -53,6 +56,16 @@
   background: var(--white);
   color: var(--warm-terracota);
   box-shadow: var(--shadow-md);
+}
+
+.btnOutline {
+  color: var(--white);
+}
+
+.btnOutline:hover {
+  color: var(--white);
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 .btnPrimary:hover {
@@ -82,6 +95,12 @@
   margin-bottom: var(--spacing-xl);
   color: var(--text-primary);
   text-align: center;
+}
+
+.sectionSubtitle {
+  font-size: 1.1rem;
+  margin-bottom: var(--spacing-lg);
+  color: var(--text-secondary);
 }
 
 /* Category Grid */
@@ -160,6 +179,14 @@
 .itemCard:hover {
   box-shadow: var(--shadow-md);
   border-color: var(--primary-color);
+}
+
+.itemImage {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-md);
 }
 
 .imgPlaceholder {

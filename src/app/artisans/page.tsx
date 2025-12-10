@@ -16,10 +16,10 @@ export default function ArtisansPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetch('/api/users')
+    fetch('/api/users/artisans')
       .then(res => res.json())
       .then(data => {
-        setArtisans(data.filter((user: Artisan) => user.type === 'seller'));
+        setArtisans(data);
         setLoading(false);
       })
       .catch(() => {
