@@ -1,27 +1,31 @@
 'use client';
 import Link from 'next/link';
+import { signIn } from 'next-auth/react';
 import { useState } from 'react';
 import styles from './login.module.css';
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e: any) {
+  async function handleSubmit(e: any) {
     e.preventDefault();
-    const password = e.target.password.value;
-
-    const symbolRegex = /[!@#$%^&*(),.?":{}|<>]/g;
-
-    if (password.length < 8) {
-      return setError("Password must be at least 8 characters long.");
-    }
-    if (!symbolRegex.test(password)) {
-      return setError("Password must include at least 1 symbol.");
-    }
-
     setError('');
-    alert("Login successful (front-end only)");
+    setLoading(true);
+    const email = e.target.email.value;
+    const password = e.target.password.value;
+    const result = await signIn('credentials', {
+      redirect: false,
+      email,
+      password,
+    });
+    setLoading(false);
+    if (result?.error) {
+      setError('Invalid email or password.');
+    } else {
+      window.location.href = '/profile';
+    }
   }
 
   return (
@@ -63,7 +67,9 @@ export default function LoginPage() {
             <Link href="/forgot-password" className={styles.forgotLink}>Forgot password?</Link>
           </div>
 
-          <button type="submit" className={styles.btnPrimary}>Sign In</button>
+          <button type="submit" className={styles.btnPrimary} disabled={loading}>
+            {loading ? 'Signing In...' : 'Sign In'}
+          </button>
         </form>
 
         <div className={styles.divider}><span>or continue with</span></div>

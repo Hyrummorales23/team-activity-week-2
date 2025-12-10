@@ -19,7 +19,7 @@ export type Rating = {
 
 export type User = {
     userId: string;
-    type: 'customer' | 'seller';
+    type: 'customer' | 'seller' | 'artisan/seller';
     name: string;
     email: string;
     passwordHash: string;

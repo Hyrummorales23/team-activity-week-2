@@ -1,27 +1,36 @@
 'use client';
 import Link from 'next/link';
+import { signIn } from 'next-auth/react';
 import { useState } from 'react';
 import styles from '../login/login.module.css';
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e: any) {
+  async function handleSubmit(e: any) {
     e.preventDefault();
-    const password = e.target.password.value;
-
-    const symbolRegex = /[!@#$%^&*(),.?":{}|<>]/g;
-
-    if (password.length < 8) {
-      return setError("Password must be at least 8 characters long.");
-    }
-    if (!symbolRegex.test(password)) {
-      return setError("Password must contain at least 1 symbol.");
-    }
-
     setError('');
-    alert('Account created (front-end only)');
+    setLoading(true);
+    const name = e.target[0].value;
+    const email = e.target[1].value;
+    const password = e.target[2].value;
+    const type = e.target[4].value;
+    // Optionally: add profilePicture upload
+    const res = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password, type, profilePicture: '' })
+    });
+    setLoading(false);
+    if (res.ok) {
+      // Auto-login after registration
+      await signIn('credentials', { email, password, callbackUrl: '/profile' });
+    } else {
+      const data = await res.json();
+      setError(data.error || 'Registration failed.');
+    }
   }
 
   return (
@@ -73,7 +82,9 @@ export default function RegisterPage() {
 
           {error && <p className={styles.error}>{error}</p>}
 
-          <button type="submit" className={styles.btnPrimary}>Create Account</button>
+          <button type="submit" className={styles.btnPrimary} disabled={loading}>
+            {loading ? 'Creating Account...' : 'Create Account'}
+          </button>
         </form>
 
         <div className={styles.divider}><span>or continue with</span></div>

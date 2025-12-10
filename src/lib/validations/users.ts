@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const createUserSchema = z.object({
-  type: z.enum(["customer", "seller"]),
+  type: z.enum(["customer", "seller", "artisan/seller"]),
   name: z.string().min(1),
   email: z.email(),
   password: z.string().min(6),
@@ -10,7 +10,7 @@ export const createUserSchema = z.object({
 
 export const updateUserSchema = z.object({
   userId: z.uuid(),
-  type: z.enum(["customer", "seller"]).optional(),
+  type: z.enum(["customer", "seller", "artisan/seller"]).optional(),
   name: z.string().min(1).optional(),
   email: z.email().optional(),
   password: z.string().min(6).optional(),

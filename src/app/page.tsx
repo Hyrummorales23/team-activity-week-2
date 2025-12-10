@@ -69,7 +69,7 @@ export default function Home() {
         <div className={styles.cardGrid}>
           {featuredItems.map((item, i) => (
             <div key={i} className={styles.itemCard}>
-              <div className={styles.imgPlaceholder}></div>
+              <div className={styles.imgPlaceholder}>🌟</div>
               <h3>{item.title}</h3>
               <p className={styles.price}>{item.price}</p>
             </div>
@@ -80,16 +80,18 @@ export default function Home() {
       {/* Latest Arrivals */}
       <section className={styles.section}>
         <h2>Latest Arrivals</h2>
-        <p className={styles.placeholderText}>New products are being added!</p>
+        <div className={styles.arrivals}>
+          <p>New products are being added!</p>
+        </div>
       </section>
 
       {/* Top Sellers */}
       <section className={styles.section}>
         <h2>Top Sellers</h2>
-        <div className={styles.cardGrid}>
+        <div className={styles.sellerGrid}>
           {topSellers.map((seller, i) => (
             <div key={i} className={styles.sellerCard}>
-              <div className={styles.avatar}></div>
+              <div className={styles.imgPlaceholder}>👤</div>
               <p>{seller.name}</p>
             </div>
           ))}
@@ -97,8 +99,8 @@ export default function Home() {
       </section>
 
       {/* Footer CTA */}
-      <section className={styles.ctaSection}>
-        <div className={styles.glassCTA}>
+      <section className={styles.section}>
+        <div className={styles.becomeArtisan}>
           <h2>Become an Artisan</h2>
           <p>Join a growing community of skilled creators and start selling your craft.</p>
           <Link href="/register" className={styles.btnPrimary}>Start Selling</Link>
