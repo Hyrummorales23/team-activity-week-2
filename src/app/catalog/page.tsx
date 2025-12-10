@@ -2,24 +2,25 @@ import MainLayout from '@/components/Layout/MainLayout';
 import Sidebar from '@/components/Sidebar/Sidebar';
 import Link from 'next/link';
 import styles from './catalog.module.css';
-import { searchItems, getAllItems } from "@/lib/queries/items";
+import { searchItems, getAllItems, Product } from "@/lib/queries/items";
 
 export default async function CatalogPage(props: {
-  searchParams: Promise<{ search?: string }>;
+  searchParams: Promise<{ search?: string; sort?: string; priceRange?: string }>;
 }) {
-  const { search = "" } = await props.searchParams;
+  const { search = "", sort = "relevance", priceRange = "all" } = await props.searchParams;
 
-  // Fetch items based on search
-  const products = search
-    ? await searchItems(search)
-    : await getAllItems();
+  // Fetch items based on search + sort + priceRange
+  const products: Product[] = search
+    ? await searchItems(search, sort, priceRange)
+    : await getAllItems(sort, priceRange);
 
   return (
     <MainLayout showSidebar sidebar={<Sidebar />}>
       <div className={styles.catalogPage}>
         
-        {/* Search Bar */}
+        {/* Search + Filters Form */}
         <form action="/catalog" method="GET" className={styles.searchSection}>
+          {/* Search Bar */}
           <input
             type="text"
             name="search"
@@ -27,37 +28,47 @@ export default async function CatalogPage(props: {
             defaultValue={search}
             className={styles.searchInput}
           />
+
+          {/* Filters */}
+          <div className={styles.filters}>
+            <h3 className={styles.filtersTitle}>Filters</h3>
+
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>Price Range</label>
+              <select
+                className={styles.filterSelect}
+                name="priceRange"
+                defaultValue={priceRange}
+              >
+                <option value="all">All Prices</option>
+                <option value="under25">Under $25</option>
+                <option value="25to50">$25 - $50</option>
+                <option value="50to100">$50 - $100</option>
+                <option value="over100">Over $100</option>
+              </select>
+            </div>
+
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>Sort By</label>
+              <select
+                name="sort"
+                className={styles.filterSelect}
+                defaultValue={sort}
+              >
+                <option value="relevance">Relevance</option>
+                <option value="price_low_high">Price: Low to High</option>
+                <option value="price_high_low">Price: High to Low</option>
+                <option value="newest">Newest First</option>
+                <option value="popular">Most Popular</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Submit Button */}
           <button type="submit" className={styles.searchButton}>
-            Search
+            Apply Filters
           </button>
         </form>
-
-        {/* Filters */}
-        <div className={styles.filters}>
-          <h3 className={styles.filtersTitle}>Filters</h3>
-
-          <div className={styles.filterGroup}>
-            <label className={styles.filterLabel}>Price Range</label>
-            <select className={styles.filterSelect}>
-              <option>All Prices</option>
-              <option>Under $25</option>
-              <option>$25 - $50</option>
-              <option>$50 - $100</option>
-              <option>Over $100</option>
-            </select>
-          </div>
-
-          <div className={styles.filterGroup}>
-            <label className={styles.filterLabel}>Sort By</label>
-            <select className={styles.filterSelect}>
-              <option>Relevance</option>
-              <option>Price: Low to High</option>
-              <option>Price: High to Low</option>
-              <option>Newest First</option>
-              <option>Most Popular</option>
-            </select>
-          </div>
-        </div>
 
         {/* Products */}
         <div className={styles.productsSection}>
@@ -68,7 +79,7 @@ export default async function CatalogPage(props: {
               <p>No items found. Try another search.</p>
             )}
 
-            {products.map((item: any) => (
+            {products.map((item) => (
               <div key={item.itemid} className={styles.productCard}>
                 <div className={styles.productImage}>
                   {item.product_picture ? (
