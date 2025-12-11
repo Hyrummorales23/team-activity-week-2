@@ -91,6 +91,7 @@
 .btnPrimary:hover {
   background: var(--primary-hover);
   box-shadow: var(--shadow-md);
+  color: var(--white)
 }
 
 .btnSecondary {

@@ -1,23 +1,51 @@
 import MainLayout from '@/components/Layout/MainLayout';
 import Sidebar from '@/components/Sidebar/Sidebar';
-import Link from 'next/link';
 import styles from './catalog.module.css';
-import { searchItems, getAllItems, Product } from "@/lib/queries/items";
+import { searchItems, getAllItems, Product, getAllItemsByCategory, getFilteredItems, getAllItemsByUser } from "@/lib/queries/items";
+import ProductsGrid from "./ProductsGrid";
 
 export default async function CatalogPage(props: {
-  searchParams: Promise<{ search?: string; sort?: string; priceRange?: string }>;
+  searchParams: Promise<{
+    search?: string;
+    sort?: string;
+    priceRange?: string;
+    category?: string;
+    filter?: string;
+    userId?: string;
+  }>
 }) {
-  const { search = "", sort = "relevance", priceRange = "all" } = await props.searchParams;
+  const {
+    search = "",
+    sort = "relevance",
+    priceRange = "all",
+    category = "",
+    filter = "",
+    userId = ""
+  } = await props.searchParams;
 
   // Fetch items based on search + sort + priceRange
-  const products: Product[] = search
-    ? await searchItems(search, sort, priceRange)
-    : await getAllItems(sort, priceRange);
+  let products: Product[] = [];
+
+  if (userId) {
+    products = await getAllItemsByUser(userId);
+  }
+  else if (search) {
+    products = await searchItems(search, sort, priceRange);
+  }
+  else if (category && category !== "all") {
+    products = await getAllItemsByCategory(category, sort, priceRange);
+  }
+  else if (filter) {
+    products = await getFilteredItems(filter, sort);
+  }
+  else {
+    products = await getAllItems(sort, priceRange);
+  }
 
   return (
     <MainLayout showSidebar sidebar={<Sidebar />}>
       <div className={styles.catalogPage}>
-        
+
         {/* Search + Filters Form */}
         <form action="/catalog" method="GET" className={styles.searchSection}>
           {/* Search Bar */}
@@ -74,7 +102,7 @@ export default async function CatalogPage(props: {
         <div className={styles.productsSection}>
           <h2 className={styles.sectionTitle}>All Products</h2>
 
-          <div className={styles.productGrid}>
+          {/* <div className={styles.productGrid}>
             {products.length === 0 && (
               <p>No items found. Try another search.</p>
             )}
@@ -112,13 +140,11 @@ export default async function CatalogPage(props: {
                       ⭐ {Number(item.average_rating || 0).toFixed(1)}
                     </span>
                   </div>
-                  <Link href="/products/edit" className={styles.editButton}>
-                    ✏️ Edit
-                  </Link>
                 </div>
               </div>
             ))}
-          </div>
+          </div> */}
+          <ProductsGrid products={products} />
         </div>
       </div>
     </MainLayout>

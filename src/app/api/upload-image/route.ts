@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import cloudinary from 'cloudinary';
+import { Readable } from 'stream';
 
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -10,24 +11,33 @@ cloudinary.v2.config({
 export async function POST(req: Request) {
   try {
     const data = await req.formData();
-    const file = data.get('file');
-    if (!file || typeof file === 'string') {
-      return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
+    const file = data.get("file");
+
+    if (!file || typeof file === "string") {
+      return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
 
-    // Convert file to base64 string
-    const buffer = Buffer.from(await (file as Blob).arrayBuffer());
-    const mimeType = (file as Blob).type;
-    const base64 = buffer.toString('base64');
-    const dataUri = `data:${mimeType};base64,${base64}`;
+    const blob = file as Blob;
+    const buffer = Buffer.from(await blob.arrayBuffer());
 
-    // Upload to Cloudinary
-    const result = await cloudinary.v2.uploader.upload(dataUri, {
-      folder: 'products',
-      resource_type: 'image',
+    const result = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.v2.uploader.upload_stream(
+        {
+          folder: "products",
+          resource_type: "image",
+        },
+        (error, uploadResult) => {
+          if (error) reject(error);
+          else resolve(uploadResult);
+        }
+      );
+
+      Readable.from(buffer).pipe(uploadStream);
     });
-    return NextResponse.json({ url: result.secure_url });
+
+    // TS infers result as "any" but it's the Cloudinary UploadApiResponse
+    return NextResponse.json({ url: (result as any).secure_url });
   } catch (err) {
-    return NextResponse.json({ error: 'Image upload failed' }, { status: 500 });
+    return NextResponse.json({ error: "Image upload failed" }, { status: 500 });
   }
 }

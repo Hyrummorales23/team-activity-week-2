@@ -1,84 +1,166 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react'; // Import for useSession
+import { useState, useEffect, ChangeEvent } from 'react';
+import { useSession, signOut } from 'next-auth/react';
 import styles from './profile.module.css';
+import catalogStyles from '../catalog/catalog.module.css';
+import Link from 'next/link';
+
+type Item = {
+  itemid: string;
+  product_name: string;
+  product_picture: string | null;
+  product_price: number;
+  average_rating: number | null;
+  artisan_name: string | null;
+};
 
 export default function ProfilePage() {
   const { data: session, status } = useSession();
-  const userType = (session?.user as any)?.type;
-  useEffect(() => {
-    console.log('Session:', session);
-    console.log('Status:', status);
-  }, [session, status]);
+  const user = session?.user as any;
+  const userType = user?.type; // "seller" or "customer"
+
   const [isEditing, setIsEditing] = useState(false);
-  const [name, setName] = useState('User Name');
-  const [email, setEmail] = useState('user@example.com');
-  const [bio, setBio] = useState('Brief bio about the user...');
-  const [location, setLocation] = useState('City, Country');
-  const [phone, setPhone] = useState('');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [createdAt, setCreatedAt] = useState('');
+  const [picture, setPicture] = useState<string | null>(null);
+
+  const [newFile, setNewFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+
+  const [userId, setUserId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
 
+  const [products, setProducts] = useState<Item[]>([]);
+
+  // --------------------------
+  // LOAD USER DATA
+  // --------------------------
   useEffect(() => {
-    const userId = session && session.user ? (session.user as any).id : undefined;
-    if (status === 'authenticated' && userId) {
-      setUserId(userId);
-      // Fetch user profile data from backend
-      fetch(`/api/users?userId=${userId}`)
+    if (status === 'authenticated' && user?.id) {
+      setUserId(user.id);
+
+      fetch(`/api/users?userId=${user.id}`)
         .then(res => res.json())
         .then(data => {
-          if (data && data.name) setName(data.name);
-          if (data && data.email) setEmail(data.email);
-          // Optionally: set bio, location, phone if available
+          if (!data) return;
+
+          setName(data.name ?? '');
+          setEmail(data.email ?? '');
+          setPicture(data.profilepicture ?? null);
+          setCreatedAt(String(data.createdat));
         });
+
+      if (user.type === 'seller') {
+        fetch(`/api/items?userId=${user.id}`)
+          .then(res => res.json())
+          .then(data => {
+            setProducts(data);
+          });
+      }
+
     }
   }, [status, session]);
 
+  // --------------------------
+  // FORMAT DATE
+  // --------------------------
+  const formattedDate =
+    createdAt
+      ? new Date(createdAt).toLocaleDateString("en-US", {
+        year: 'numeric',
+        month: 'long'
+      })
+      : '';
+
+  // --------------------------
+  // PROFILE PICTURE HANDLING
+  // --------------------------
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setNewFile(file);
+    const url = URL.createObjectURL(file);
+    setPreview(url);
+    setTimeout(() => { URL.revokeObjectURL(url); }, 1000);
+  };
+
+  const uploadImage = async () => {
+    if (!newFile) return null;
+
+    const formData = new FormData();
+    formData.append('file', newFile);
+
+    const res = await fetch('/api/upload-image', {
+      method: 'POST',
+      body: formData
+    });
+
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    return data.url; // returned image URL
+  };
+
+  // --------------------------
+  // SAVE PROFILE
+  // --------------------------
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!userId) return;
+
     setLoading(true);
     setMessage(null);
-    if (!userId) {
-      setMessage('No user ID found. Please log in.');
-      setLoading(false);
-      return;
+
+    let uploadedImage = picture;
+
+    // upload new image if selected
+    if (newFile) {
+      const imgUrl = await uploadImage();
+      if (imgUrl) uploadedImage = imgUrl;
     }
-    try {
-      const res = await fetch('/api/users', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId,
-          name,
-          email,
-          profilePicture: '', // Add image upload logic if needed
-          type: 'customer', // Or 'seller', make dynamic if needed
-        })
-      });
-      if (res.ok) {
-        setMessage('Profile updated successfully!');
-        setIsEditing(false);
-      } else {
-        setMessage('Failed to update profile.');
-      }
-    } catch (err) {
-      setMessage('Error updating profile.');
-    } finally {
-      setLoading(false);
+
+    const res = await fetch('/api/users', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId,
+        name,
+        email,
+        profilePicture: uploadedImage,
+        type: userType
+      })
+    });
+
+    if (res.ok) {
+      setMessage('Profile updated successfully!');
+      setPicture(uploadedImage);
+      setPreview(null);
+      setNewFile(null);
+      setIsEditing(false);
+    } else {
+      setMessage('Failed to update profile.');
     }
+
+    setLoading(false);
   };
 
+  // --------------------------
+  // CANCEL EDITING
+  // --------------------------
   const handleCancel = () => {
-    // Reset to original values (would come from API)
     setIsEditing(false);
+    setPreview(null);
+    setNewFile(null);
   };
 
-  if (status === 'loading') {
-    return <div>Loading...</div>;
-  }
-
+  // --------------------------
+  // LOADING / AUTH CHECKS
+  // --------------------------
+  if (status === 'loading') return <div>Loading...</div>;
   if (status === 'unauthenticated') {
     return (
       <div style={{ textAlign: 'center', marginTop: '3rem' }}>
@@ -88,167 +170,95 @@ export default function ProfilePage() {
     );
   }
 
-  if (userType === 'seller') {
-    // Seller/Artisan view
-    return (
-      <div className={styles.profilePage}>
-        <div className={styles.profileHeader}>
-          <div className={styles.avatarSection}>
-            <div className={styles.avatar}>
-              <span className={styles.placeholder}>🧑‍🎨</span>
-            </div>
-            {isEditing && (
-              <button className={styles.btnSecondary}>Change Photo</button>
-            )}
-          </div>
-          <div className={styles.profileInfo}>
-            {isEditing ? (
-              <input
-                type="text"
-                className={styles.nameInput}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            ) : (
-              <h1 className={styles.profileName}>{name}</h1>
-            )}
-            <p className={styles.profileType}>Artisan/Seller Account</p>
-            <p className={styles.memberSince}>Member since November 2025</p>
-            {!isEditing && (
-              <button 
-                className={styles.btnEdit}
-                onClick={() => setIsEditing(true)}
-              >
-                ✏️ Edit Profile
-              </button>
-            )}
-            {/* Add Product Button */}
-            {!isEditing && (
-              <a href="/products/new" className={styles.btnPrimary} style={{marginLeft: '1rem'}}>➕ Add Product</a>
-            )}
-          </div>
-        </div>
-        <div className={styles.profileContent}>
-          <div className={styles.section}>
-            <h2 className={styles.sectionTitle}>My Products</h2>
-            <div className={styles.placeholder}>
-              <p>Your listed products will appear here</p>
-            </div>
-          </div>
-          <div className={styles.section}>
-            <h2 className={styles.sectionTitle}>Sales</h2>
-            <div className={styles.placeholder}>
-              <p>Your sales history will appear here</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // --------------------------
+  // COMMON UI ELEMENTS
+  // --------------------------
+  const avatarIcon = userType === 'seller' ? '🧑‍🎨' : '👤';
+  const accountLabel = userType === 'seller' ? 'Artisan/Seller Account' : 'Customer Account';
 
-  // Customer view (default)
   return (
     <div className={styles.profilePage}>
+      {/* HEADER */}
       <div className={styles.profileHeader}>
         <div className={styles.avatarSection}>
           <div className={styles.avatar}>
-            <span className={styles.placeholder}>👤</span>
+            {preview ? (
+              <img src={preview} alt="preview" className={styles.avatarImg} />
+            ) : picture ? (
+              <img src={picture} alt="profile" className={styles.avatarImg} />
+            ) : (
+              <span className={styles.placeholder}>{avatarIcon}</span>
+            )}
           </div>
+
           {isEditing && (
-            <button className={styles.btnSecondary}>Change Photo</button>
+            <label className={styles.btnEdit}>
+              Change Photo
+              <input
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={handleFileChange}
+              />
+            </label>
           )}
         </div>
+
         <div className={styles.profileInfo}>
-          {isEditing ? (
-            <input
-              type="text"
-              className={styles.nameInput}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          ) : (
-            <h1 className={styles.profileName}>{name}</h1>
-          )}
-          <p className={styles.profileType}>Customer Account</p>
-          <p className={styles.memberSince}>Member since November 2025</p>
+          <h1 className={styles.profileName}>{name}</h1>
+
+          <p className={styles.profileType}>{accountLabel}</p>
+
+          <p className={styles.memberSince}>Member since {formattedDate}</p>
+
           {!isEditing && (
-            <button 
-              className={styles.btnEdit}
-              onClick={() => setIsEditing(true)}
-            >
+            <button className={styles.btnEdit} onClick={() => setIsEditing(true)}>
               ✏️ Edit Profile
             </button>
           )}
+          <button
+            className={styles.btnSignOut}
+            onClick={() => signOut({ callbackUrl: "/" })}
+          >
+            Sign Out
+          </button>
         </div>
       </div>
+
+      {/* CONTENT */}
       <div className={styles.profileContent}>
+        {/* ---------------- ACCOUNT INFO ---------------- */}
         <div className={styles.section}>
           <h2 className={styles.sectionTitle}>Account Information</h2>
+
           <form className={styles.form} onSubmit={handleSave}>
             <div className={styles.formRow}>
               <div className={styles.formGroup}>
                 <label className={styles.label}>Full Name</label>
-                <input 
-                  type="text" 
-                  className={styles.input} 
+                <input
+                  type="text"
+                  className={styles.input}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   disabled={!isEditing}
                 />
               </div>
+
               <div className={styles.formGroup}>
                 <label className={styles.label}>Email</label>
-                <input 
-                  type="email" 
-                  className={styles.input} 
+                <input
+                  type="email"
+                  className={styles.input}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={!isEditing}
                 />
               </div>
             </div>
-            <div className={styles.formRow}>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Location</label>
-                <input 
-                  type="text" 
-                  className={styles.input} 
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  placeholder="City, Country"
-                  disabled={!isEditing}
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Phone (Optional)</label>
-                <input 
-                  type="tel" 
-                  className={styles.input} 
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+1 (555) 000-0000"
-                  disabled={!isEditing}
-                />
-              </div>
-            </div>
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Bio</label>
-              <textarea 
-                className={styles.textarea}
-                rows={4}
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                placeholder="Tell us about yourself..."
-                disabled={!isEditing}
-              />
-            </div>
+
             {isEditing && (
               <div className={styles.formActions}>
-                <button 
-                  type="button" 
-                  className={styles.btnCancel}
-                  onClick={handleCancel}
-                >
+                <button type="button" className={styles.btnCancel} onClick={handleCancel}>
                   Cancel
                 </button>
                 <button type="submit" className={styles.btnPrimary}>
@@ -257,20 +267,91 @@ export default function ProfilePage() {
               </div>
             )}
           </form>
-          {message && <div style={{ margin: '1rem 0', color: message.includes('success') ? 'green' : 'red' }}>{message}</div>}
+
+          {message && (
+            <div style={{ marginTop: '1rem', color: message.includes('success') ? 'green' : 'red' }}>
+              {message}
+            </div>
+          )}
         </div>
-        <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>My Orders</h2>
-          <div className={styles.placeholder}>
-            <p>Your order history will appear here</p>
-          </div>
-        </div>
-        <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>Favorites</h2>
-          <div className={styles.placeholder}>
-            <p>Your favorite products will appear here</p>
-          </div>
-        </div>
+
+        {/* ---------------- SELLER SECTIONS ---------------- */}
+        {userType === 'seller' && (
+          <>
+            <div className={styles.section}>
+              <div className={styles.sectionProducts}>
+                <h2 className={styles.sectionTitle}>My Products</h2>
+                <a href="/products/new" className={styles.btnPrimary} style={{ marginLeft: '1rem' }}>
+                  ➕ Add Product
+                </a>
+              </div>
+              <div className={catalogStyles.productGrid}>
+                {products.length === 0 && (
+                  <p>Your listed products will appear here</p>
+                )}
+
+                {products.map((item) => (
+                  <div key={item.itemid} className={catalogStyles.productCard}>
+                    <div className={catalogStyles.productImage}>
+                      {item.product_picture ? (
+                        <img
+                          src={item.product_picture}
+                          alt={item.product_name}
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                          }}
+                        />
+                      ) : (
+                        <span className={catalogStyles.placeholder}>📦</span>
+                      )}
+                    </div>
+
+                    <div className={catalogStyles.productInfo}>
+                      <h3 className={catalogStyles.productName}>{item.product_name}</h3>
+                      <p className={catalogStyles.productArtisan}>
+                        By {item.artisan_name || "Unknown"}
+                      </p>
+
+                      <div className={catalogStyles.productFooter}>
+                        <span className={catalogStyles.productPrice}>
+                          ${(item.product_price / 100).toFixed(2)}
+                        </span>
+
+                        <span className={catalogStyles.productRating}>
+                          ⭐ {Number(item.average_rating || 0).toFixed(1)}
+                        </span>
+                      </div>
+                      <Link href={`/products/edit?id=${item.itemid}`} className={catalogStyles.editButton}>
+                        ✏️ Edit
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ---------------- CUSTOMER SECTIONS ---------------- */}
+        {userType === 'customer' && (
+          <>
+            {/* <div className={styles.section}>
+              <h2 className={styles.sectionTitle}>My Orders</h2>
+              <div className={styles.placeholder}>
+                <p>Your order history will appear here</p>
+              </div>
+            </div>
+
+            <div className={styles.section}>
+              <h2 className={styles.sectionTitle}>Favorites</h2>
+              <div className={styles.placeholder}>
+                <p>Your favorite products will appear here</p>
+              </div>
+            </div> */}
+          </>
+        )}
       </div>
     </div>
   );

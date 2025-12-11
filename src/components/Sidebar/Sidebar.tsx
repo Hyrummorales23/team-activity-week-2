@@ -51,12 +51,6 @@ export default function Sidebar({ activeCategory }: SidebarProps) {
           <Link href="/catalog?filter=popular" className={styles.filterLink}>
             🔥 Popular Items
           </Link>
-          <Link href="/catalog?filter=sale" className={styles.filterLink}>
-            💰 On Sale
-          </Link>
-          <Link href="/catalog?filter=featured" className={styles.filterLink}>
-            ✨ Featured Artisans
-          </Link>
         </div>
       </div>
     </aside>

@@ -37,12 +37,6 @@ export default function Home() {
     { name: 'Jewelry', icon: '💍', slug: 'jewelry' },
   ];
 
-  const featuredItems = [
-    { title: 'Handcrafted Clay Pot', price: '$42' },
-    { title: 'Woven Blanket', price: '$65' },
-    { title: 'Wooden Sculpture', price: '$120' },
-  ];
-
   type Item = {
     product_picture: string | null;
     product_name: string;
@@ -212,7 +206,7 @@ export default function Home() {
                 />
 
                 <p>{item.name}</p>
-                <p className={styles.price}>{item.average_rating ? item.average_rating + '/5' : "0.00"}</p>
+                <p className={styles.price}>{item.average_rating ? (item.average_rating == "0" ? "0" : Number(item.average_rating).toFixed(2)) + '/5' : "0"}</p>
               </div>
             ))}
           </div>

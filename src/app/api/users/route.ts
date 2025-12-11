@@ -4,12 +4,24 @@ import postgres from 'postgres';
 const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
 
 // GET all users (for admin/testing)
-export async function GET() {
-  try {
-    const users = await sql`SELECT userId, name, email, type, profilePicture FROM users ORDER BY createdAt DESC;`;
-    return NextResponse.json(users);
-  } catch (err) {
-    return NextResponse.json({ error: 'Error fetching users' }, { status: 500 });
+export async function GET(req: Request) {
+  if (req.url.includes('userId=')) {
+    const url = new URL(req.url);
+    const userId = url.searchParams.get('userId');
+    try {
+      const [user] = await sql`SELECT userId, name, email, type, profilePicture, createdAt FROM users WHERE userId = ${userId};`;
+      return NextResponse.json(user);
+    } catch (err) {
+      return NextResponse.json({ error: 'Error fetching user' }, { status: 500 });
+    }
+  }
+  else {
+    try {
+      const users = await sql`SELECT userId, name, email, type, profilePicture FROM users ORDER BY createdAt DESC;`;
+      return NextResponse.json(users);
+    } catch (err) {
+      return NextResponse.json({ error: 'Error fetching users' }, { status: 500 });
+    }
   }
 }
 

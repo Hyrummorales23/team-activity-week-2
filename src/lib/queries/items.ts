@@ -20,7 +20,7 @@ export type Product = {
   artisan_name?: string | null;
   average_rating?: number | null;
   rating_count?: number | null;
-  created_at?: Date;
+  createdat?: Date;
 };
 
 /* ---------- CRUD ---------- */
@@ -52,6 +52,77 @@ export async function createItem(input: z.infer<typeof createItemSchema>) {
   `;
 
   return result[0];
+}
+
+export async function getAllItemsByCategory(category: string, sort: string, priceRange: string) {
+  const orderBy = getOrderBy(sort);
+  const priceFilter = getPriceFilter(priceRange);
+
+  const result = await sql<Product[]>`
+    SELECT
+      i.*,
+      COALESCE(AVG(r.ratingValue), 0) AS average_rating,
+      COUNT(r.ratingId) AS rating_count,
+      u.name AS artisan_name
+    FROM items i
+    LEFT JOIN ratings r ON i.itemId = r.productId
+    LEFT JOIN users u ON i.user_id = u.userId
+    WHERE LOWER(i.category) = ${category.toLowerCase()}
+    ${priceFilter ? sql`AND ${priceFilter}` : sql``}
+    GROUP BY i.itemId, u.userId
+    ORDER BY ${orderBy};
+  `;
+
+  return result;
+}
+
+export async function getFilteredItems(filter: string, sort: string) {
+  const orderBy = getOrderBy(sort);
+
+  let filterCondition = sql``;
+
+  switch (filter) {
+    case "new":
+      filterCondition = sql`i.createdAt > NOW() - INTERVAL '30 days'`;
+      break;
+    case "popular":
+      filterCondition = sql`r.ratingValue IS NOT NULL`;
+      break;
+  }
+
+  const result = await sql<Product[]>`
+    SELECT
+      i.*,
+      COALESCE(AVG(r.ratingValue), 0) AS average_rating,
+      COUNT(r.ratingId) AS rating_count,
+      u.name AS artisan_name
+    FROM items i
+    LEFT JOIN ratings r ON i.itemId = r.productId
+    LEFT JOIN users u ON i.user_id = u.userId
+    WHERE ${filterCondition}
+    GROUP BY i.itemId, u.userId
+    ORDER BY ${orderBy};
+  `;
+
+  return result;
+}
+
+export async function getAllItemsByUser(userId: string) {
+  const result = await sql<Product[]>`
+    SELECT
+      i.*,
+      COALESCE(AVG(r.ratingValue), 0) AS average_rating,
+      COUNT(r.ratingId) AS rating_count,
+      u.name AS artisan_name
+    FROM items i
+    LEFT JOIN ratings r ON i.itemId = r.productId
+    LEFT JOIN users u ON i.user_id = u.userId
+    WHERE i.user_id = ${userId}
+    GROUP BY i.itemId, u.userId
+    ORDER BY i.createdAt DESC;
+  `;
+
+  return result;
 }
 
 export async function updateItem(input: z.infer<typeof updateItemSchema>) {
@@ -120,29 +191,28 @@ export async function deleteItem(input: z.infer<typeof deleteItemSchema>) {
 function getOrderBy(sort: string) {
   switch (sort) {
     case "price_low_high":
-      return sql`i.product_price ASC`;
+      return sql`CAST(i.product_price AS INTEGER) ASC`;
     case "price_high_low":
-      return sql`i.product_price DESC`;
+      return sql`CAST(i.product_price AS INTEGER) DESC`;
     case "newest":
-      return sql`i.created_at DESC`;
+      return sql`i.createdat DESC`;
     case "popular":
       return sql`rating_count DESC`;
-    case "relevance":
     default:
-      return sql`average_rating DESC`;
+      return sql`i.createdat DESC`;
   }
 }
 
-function getPriceFilter(priceRange: string) {
-  switch (priceRange) {
+function getPriceFilter(range: string) {
+  switch (range) {
     case "under25":
-      return sql`i.product_price < 2500`;
+      return sql`CAST(i.product_price AS INTEGER) < 2500`;
     case "25to50":
-      return sql`i.product_price BETWEEN 2500 AND 5000`;
+      return sql`CAST(i.product_price AS INTEGER) BETWEEN 2500 AND 5000`;
     case "50to100":
-      return sql`i.product_price BETWEEN 5000 AND 10000`;
+      return sql`CAST(i.product_price AS INTEGER) BETWEEN 5000 AND 10000`;
     case "over100":
-      return sql`i.product_price > 10000`;
+      return sql`CAST(i.product_price AS INTEGER) > 10000`;
     default:
       return null;
   }
