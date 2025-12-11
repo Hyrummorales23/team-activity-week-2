@@ -12,13 +12,13 @@ export default function NewProductPage() {
   const [productName, setProductName] = useState("");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
-  const [stock, setStock] = useState("");
-  const [statusValue, setStatusValue] = useState("active");
+  const [price, setPrice] = useState<number | "">("");
+  const [stock, setStock] = useState<number | "">("");
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
+  const userId = session && session.user ? (session.user as any).id : undefined;
 
   if (status === "loading") return <div>Loading...</div>;
   if (status === "unauthenticated") {
@@ -33,25 +33,44 @@ export default function NewProductPage() {
   const handleImageDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith("image/")) {
-      setImageFile(file);
-      setImagePreview(URL.createObjectURL(file));
+
+    if (!file || !file.type.startsWith("image/")) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      setMessage("Image must be under 5MB");
+      return;
     }
+
+    setImageFile(file);
+    const url = URL.createObjectURL(file);
+    setImagePreview(url);
+    setTimeout(() => { URL.revokeObjectURL(url); }, 1000);
+
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && file.type.startsWith("image/")) {
-      setImageFile(file);
-      setImagePreview(URL.createObjectURL(file));
+
+    if (!file || !file.type.startsWith("image/")) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      setMessage("Image must be under 5MB");
+      return;
     }
+
+    setImageFile(file);
+    const url = URL.createObjectURL(file);
+    setImagePreview(url);
+    setTimeout(() => { URL.revokeObjectURL(url); }, 1000);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (loading) return;
+
     setLoading(true);
     setMessage(null);
-    const userId = session && session.user ? (session.user as any).id : undefined;
     if (!userId) {
       setMessage("No user ID found. Please log in.");
       setLoading(false);
@@ -59,9 +78,24 @@ export default function NewProductPage() {
     }
     try {
       let productPicture = "";
+
+      // Upload image if provided
       if (imageFile) {
-        // Simulate upload, in real app upload to server or cloud storage
-        productPicture = imagePreview;
+        const data = new FormData();
+        data.append("file", imageFile);
+
+        const upload = await fetch("/api/upload-image", {
+          method: "POST",
+          body: data,
+        });
+
+        const result = await upload.json();
+        if (!result.url) throw new Error("Failed to upload image");
+
+        productPicture = result.url;
+      }
+      if (!imageFile) {
+        productPicture = "";
       }
       const res = await fetch("/api/items", {
         method: "POST",
@@ -69,22 +103,21 @@ export default function NewProductPage() {
         body: JSON.stringify({
           productName,
           productDescription: description,
-          productPrice: parseFloat(price),
+          productPrice: price == "" ? "" : (Math.round(price * 100)),
           productPicture,
           category,
           userId,
-          status: statusValue,
-          stock: parseInt(stock, 10) || 0,
+          stock: stock || 0,
         }),
       });
       if (res.ok) {
         setMessage("Product created successfully!");
-        setTimeout(() => router.push("/profile"), 1200);
+        setTimeout(() => router.push("/profile"), 1000);
       } else {
         setMessage("Failed to create product.");
       }
-    } catch (err) {
-      setMessage("Error creating product.");
+    } catch (err: any) {
+      setMessage(err?.message || "Error creating product.");
     } finally {
       setLoading(false);
     }
@@ -156,7 +189,7 @@ export default function NewProductPage() {
               onChange={(e) => setCategory(e.target.value)}
               required
             >
-              <option value="">Select a category</option>
+              <option value="" disabled>Select a category</option>
               <option value="ceramics">Ceramics</option>
               <option value="textiles">Textiles</option>
               <option value="woodwork">Woodwork</option>
@@ -199,7 +232,7 @@ export default function NewProductPage() {
                 min="0"
                 className={styles.input}
                 value={price}
-                onChange={(e) => setPrice(e.target.value)}
+                onChange={(e) => setPrice(Number(e.target.value))}
                 required
               />
             </div>
@@ -215,34 +248,8 @@ export default function NewProductPage() {
                 min="0"
                 className={styles.input}
                 value={stock}
-                onChange={(e) => setStock(e.target.value)}
+                onChange={(e) => setStock(Number(e.target.value))}
               />
-            </div>
-          </div>
-
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Product Status</label>
-            <div className={styles.radioGroup}>
-              <label className={styles.radioLabel}>
-                <input
-                  type="radio"
-                  name="status"
-                  value="active"
-                  checked={statusValue === "active"}
-                  onChange={(e) => setStatusValue(e.target.value)}
-                />
-                <span>Active (Visible to customers)</span>
-              </label>
-              <label className={styles.radioLabel}>
-                <input
-                  type="radio"
-                  name="status"
-                  value="draft"
-                  checked={statusValue === "draft"}
-                  onChange={(e) => setStatusValue(e.target.value)}
-                />
-                <span>Draft (Hidden from customers)</span>
-              </label>
             </div>
           </div>
 

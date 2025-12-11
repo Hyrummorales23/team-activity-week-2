@@ -3,11 +3,13 @@ import styles from './artisans.module.css';
 import { useEffect, useState } from 'react';
 
 type Artisan = {
-  userId: string;
+  userid: string;
   name: string;
   email: string;
   type: string;
-  profilePicture: string;
+  profilepicture: string;
+  total_items: string;
+  average_rating: string;
 };
 
 export default function ArtisansPage() {
@@ -47,19 +49,39 @@ export default function ArtisansPage() {
             <div>No artisans found.</div>
           ) : (
             artisans.map((artisan, idx) => (
-              <div key={artisan.userId || artisan.email || idx} className={styles.artisanCard}>
+              <div key={artisan.userid || artisan.email || idx} className={styles.artisanCard}>
                 <div className={styles.artisanAvatar}>
-                  <span className={styles.placeholder}>👤</span>
+                  {artisan.profilepicture ? (
+                    <img
+                      src={artisan.profilepicture}
+                      alt={artisan.name}
+                      className={styles.artisanImage}
+                    />
+                  ) : (
+                    <span className={styles.placeholder}>👤</span>
+                  )}
                 </div>
+
                 <h3 className={styles.artisanName}>{artisan.name}</h3>
-                <p className={styles.artisanBio}>
-                  {/* You can add a real bio field if available */}
-                  {artisan.email}
-                </p>
+                <p className={styles.artisanBio}>{artisan.email}</p>
+
                 <div className={styles.artisanStats}>
-                  <span>✨ Products</span>
-                  <span>⭐ Rating</span>
+                  <div className={styles.statBlock}>
+                    <span>✨ Products</span>
+                    <span className={styles.statNumber}>{artisan.total_items || 0}</span>
+                  </div>
+                  <div className={styles.statBlock}>
+                    <span>⭐ Rating</span>
+                    <span className={styles.statNumber}>{artisan.average_rating || "N/A"}</span>
+                  </div>
                 </div>
+
+                <a
+                  className={styles.btnPrimary}
+                  href={`/catalog?userId=${artisan.userid}`}
+                >
+                  View Crafts
+                </a>
               </div>
             ))
           )}

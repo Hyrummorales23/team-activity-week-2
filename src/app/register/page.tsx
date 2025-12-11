@@ -9,15 +9,17 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: any) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError('');
     setLoading(true);
-    const name = e.target[0].value;
-    const email = e.target[1].value;
-    const password = e.target[2].value;
-    const type = e.target[4].value;
-    // Optionally: add profilePicture upload
+
+    const form = e.currentTarget;
+    const name = (form.elements.namedItem("name") as HTMLInputElement).value;
+    const email = (form.elements.namedItem("email") as HTMLInputElement).value;
+    const password = (form.elements.namedItem("password") as HTMLInputElement).value;
+    const type = (form.elements.namedItem("type") as HTMLSelectElement).value;
+
     const res = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -42,12 +44,12 @@ export default function RegisterPage() {
         <form className={styles.loginForm} onSubmit={handleSubmit}>
           <div className={styles.formGroup}>
             <label className={styles.label}>Full Name</label>
-            <input type="text" placeholder="Enter your name" className={styles.input} required />
+            <input name='name' type="text" placeholder="Enter your name" className={styles.input} required />
           </div>
 
           <div className={styles.formGroup}>
             <label className={styles.label}>Email Address</label>
-            <input type="email" placeholder="your@email.com" className={styles.input} required />
+            <input name='email' type="email" placeholder="your@email.com" className={styles.input} required />
           </div>
 
           <div className={styles.formGroup}>
@@ -57,6 +59,7 @@ export default function RegisterPage() {
               <input
                 type={showPassword ? "text" : "password"}
                 id="password"
+                name='password'
                 placeholder="Create a password"
                 className={styles.input}
                 required
@@ -73,10 +76,10 @@ export default function RegisterPage() {
 
           <div className={styles.formGroup}>
             <label className={styles.label}>I am a...</label>
-            <select className={styles.input} required>
+            <select name='type' className={styles.input} required>
               <option value="">Select account type</option>
               <option value="customer">Customer</option>
-              <option value="artisan">Artisan/Seller</option>
+              <option value="seller">Artisan/Seller</option>
             </select>
           </div>
 

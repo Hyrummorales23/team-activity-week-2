@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { signIn } from 'next-auth/react';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import styles from './login.module.css';
 
 export default function LoginPage() {
@@ -9,12 +10,16 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: any) {
+  const router = useRouter();
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError('');
     setLoading(true);
-    const email = e.target.email.value;
-    const password = e.target.password.value;
+
+    const form = e.currentTarget;
+    const email = (form.email as HTMLInputElement).value;
+    const password = (form.password as HTMLInputElement).value;
     const result = await signIn('credentials', {
       redirect: false,
       email,
@@ -24,7 +29,7 @@ export default function LoginPage() {
     if (result?.error) {
       setError('Invalid email or password.');
     } else {
-      window.location.href = '/profile';
+      router.push('/profile');
     }
   }
 
@@ -42,7 +47,7 @@ export default function LoginPage() {
 
           <div className={styles.formGroup}>
             <label htmlFor="password" className={styles.label}>Password</label>
-            
+
             <div className={styles.passwordWrapper}>
               <input
                 type={showPassword ? "text" : "password"}
